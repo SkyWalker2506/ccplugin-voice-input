@@ -1,0 +1,7 @@
+{
+  "name": "voice-input",
+  "description": "macOS mikrofon + Whisper transkript. Türkçe destekli. Sonuç clipboard'a kopyalanır.",
+  "version": "1.0.0",
+  "platform": ["macos"],
+  "commands": [{"name": "voice", "path": "commands/voice.md"}]
+}
