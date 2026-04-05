@@ -1,7 +1,9 @@
 #!/bin/bash
 # Whisper backend seç
 INPUT="${1:-/tmp/voice_input.wav}"
-BACKEND="${VOICE_BACKEND:-whisper-cpp}"  # whisper-cpp | openai | apple
+PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+source "$PLUGIN_DIR/.env" 2>/dev/null
+BACKEND="${VOICE_BACKEND:-apple}"
 
 if [ ! -f "$INPUT" ]; then
   echo "❌ Ses dosyası bulunamadı: $INPUT" >&2
