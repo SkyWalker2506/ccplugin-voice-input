@@ -1,25 +1,26 @@
 #!/bin/bash
-# Sessizlik tespiti ile kayıt — sox varsa sox, yoksa afrecord (macOS built-in)
+# Kayıt — sox(rec), ffmpeg veya python sounddevice
 OUTPUT="${1:-/tmp/voice_input.wav}"
-DURATION="${2:-30}"  # max saniye
+DURATION="${2:-30}"
 
 echo "🎤 Konuşun... (Enter ile bitir, max ${DURATION}s)"
 
-if command -v sox &>/dev/null; then
-  # sox: sessizlik tespiti destekli
-  sox -d -r 16000 -c 1 "$OUTPUT" silence 1 0.1 1% 1 1.5 1% trim 0 "$DURATION" &
+if command -v rec &>/dev/null; then
+  # sox rec komutu
+  rec -r 16000 -c 1 "$OUTPUT" trim 0 "$DURATION" &
   REC_PID=$!
-  read -r
-  kill $REC_PID 2>/dev/null
-  wait $REC_PID 2>/dev/null
+elif command -v ffmpeg &>/dev/null; then
+  # ffmpeg ile mikrofon kaydı
+  ffmpeg -f avfoundation -i ":0" -ar 16000 -ac 1 -t "$DURATION" "$OUTPUT" -y 2>/dev/null &
+  REC_PID=$!
 else
-  # afrecord: macOS built-in, sox gerekmez
-  afrecord -d "$DURATION" -f WAVE -c 1 -r 16000 "$OUTPUT" &
-  REC_PID=$!
-  read -r
-  kill $REC_PID 2>/dev/null
-  wait $REC_PID 2>/dev/null
+  echo "❌ Kayıt aracı bulunamadı (sox veya ffmpeg gerekli)" >&2
+  exit 1
 fi
+
+read -r
+kill $REC_PID 2>/dev/null
+wait $REC_PID 2>/dev/null
 
 if [ ! -f "$OUTPUT" ] || [ ! -s "$OUTPUT" ]; then
   echo "❌ Ses kaydı başarısız" >&2
