@@ -12,30 +12,40 @@ if [ "$(uname)" != "Darwin" ]; then
   exit 1
 fi
 
-if ! command -v sox &>/dev/null; then
-  echo "📦 sox kuruluyor..."
-  brew install sox
-else
-  echo "✓ sox zaten kurulu"
+# Backend argümandan veya env'den al, yoksa interaktif sor
+BACKEND="${VOICE_BACKEND:-${1:-}}"
+
+if [ -z "$BACKEND" ]; then
+  if [ -t 0 ]; then
+    # İnteraktif terminal
+    echo "Whisper backend seçin:"
+    echo "  1) whisper.cpp (local, ücretsiz, önerilen)"
+    echo "  2) OpenAI Whisper API (cloud, API key gerekli)"
+    echo "  3) Apple Speech Recognition (local, ek kurulum yok)"
+    echo ""
+    read -p "Seçim [1/2/3, default: 3]: " CHOICE
+    CHOICE="${CHOICE:-3}"
+    case "$CHOICE" in
+      1) BACKEND="whisper-cpp" ;;
+      2) BACKEND="openai" ;;
+      3) BACKEND="apple" ;;
+      *) echo "❌ Geçersiz seçim"; exit 1 ;;
+    esac
+  else
+    # Non-interaktif — Apple Speech varsayılan
+    BACKEND="apple"
+    echo "ℹ️  Non-interaktif mod — Apple Speech backend seçildi"
+    echo "   Değiştirmek için: VOICE_BACKEND=whisper-cpp bash install.sh"
+  fi
 fi
 
-echo ""
-echo "Whisper backend seçin:"
-echo "  1) whisper.cpp (local, ücretsiz, önerilen)"
-echo "  2) OpenAI Whisper API (cloud, API key gerekli)"
-echo "  3) Apple Speech Recognition (local, ek kurulum yok)"
-echo ""
-read -p "Seçim [1/2/3, default: 1]: " CHOICE
-CHOICE="${CHOICE:-1}"
-
-BACKEND=""
-case "$CHOICE" in
-  1)
-    BACKEND="whisper-cpp"
+# Backend kurulumu
+case "$BACKEND" in
+  whisper-cpp)
+    if ! command -v sox &>/dev/null; then brew install sox; fi
     if ! command -v whisper-cpp &>/dev/null; then
       echo "📦 whisper-cpp kuruluyor..."
       brew install whisper-cpp
-      echo ""
       echo "📥 Türkçe base model indiriliyor (~140MB)..."
       MODEL_DIR="$(brew --prefix)/share/whisper-cpp/models"
       mkdir -p "$MODEL_DIR"
@@ -47,27 +57,25 @@ case "$CHOICE" in
       echo "✓ whisper-cpp zaten kurulu"
     fi
     ;;
-  2)
-    BACKEND="openai"
-    if ! python3 -c "import openai" &>/dev/null; then
-      pip3 install openai
-    fi
+  openai)
+    if ! command -v sox &>/dev/null; then brew install sox; fi
+    python3 -c "import openai" 2>/dev/null || pip3 install openai
     SECRETS_FILE="$HOME/.claude/secrets/secrets.env"
     if ! grep -q "OPENAI_API_KEY" "$SECRETS_FILE" 2>/dev/null; then
-      read -p "OpenAI API key girin (sk-...): " API_KEY
-      if [ -n "$API_KEY" ]; then
-        mkdir -p "$(dirname "$SECRETS_FILE")"
-        echo "export OPENAI_API_KEY=\"$API_KEY\"" >> "$SECRETS_FILE"
-        echo "✓ API key eklendi"
+      if [ -t 0 ]; then
+        read -p "OpenAI API key girin (sk-...): " API_KEY
+        if [ -n "$API_KEY" ]; then
+          mkdir -p "$(dirname "$SECRETS_FILE")"
+          echo "export OPENAI_API_KEY=\"$API_KEY\"" >> "$SECRETS_FILE"
+          echo "✓ API key eklendi"
+        fi
+      else
+        echo "⚠️  OPENAI_API_KEY secrets.env'e ekleyin"
       fi
     fi
     ;;
-  3)
-    BACKEND="apple"
+  apple)
     echo "✓ Apple Speech — ek kurulum yok"
-    ;;
-  *)
-    echo "❌ Geçersiz seçim"; exit 1
     ;;
 esac
 
@@ -84,6 +92,5 @@ chmod +x "$INSTALL_DIR/scripts/"*.sh
 echo "export VOICE_BACKEND=\"$BACKEND\"" > "$INSTALL_DIR/.env"
 
 echo ""
-echo "✅ Kurulum tamamlandı!"
-echo "Kullanım: /voice (Claude Code'da)"
-echo "Backend: $BACKEND"
+echo "✅ Kurulum tamamlandı! Backend: $BACKEND"
+echo "Kullanım: /mic (Claude Code'da)"
