@@ -83,10 +83,13 @@ echo ""
 echo "📁 Kopyalanıyor: $INSTALL_DIR"
 mkdir -p "$INSTALL_DIR/scripts" "$INSTALL_DIR/commands" "$INSTALL_DIR/.claude-plugin"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cp "$SCRIPT_DIR/scripts/"*.sh "$INSTALL_DIR/scripts/"
-cp "$SCRIPT_DIR/commands/"*.md "$INSTALL_DIR/commands/"
-cp "$SCRIPT_DIR/.claude-plugin/plugin.json" "$INSTALL_DIR/.claude-plugin/"
-[ -f "$SCRIPT_DIR/apple_speech.swift" ] && cp "$SCRIPT_DIR/apple_speech.swift" "$INSTALL_DIR/"
+# Aynı dizinse kopyalamaya gerek yok (marketplace zaten cloneladı)
+if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
+  cp "$SCRIPT_DIR/scripts/"*.sh "$INSTALL_DIR/scripts/"
+  cp "$SCRIPT_DIR/commands/"*.md "$INSTALL_DIR/commands/"
+  cp "$SCRIPT_DIR/.claude-plugin/plugin.json" "$INSTALL_DIR/.claude-plugin/"
+  [ -f "$SCRIPT_DIR/apple_speech.swift" ] && cp "$SCRIPT_DIR/apple_speech.swift" "$INSTALL_DIR/"
+fi
 chmod +x "$INSTALL_DIR/scripts/"*.sh
 
 echo "export VOICE_BACKEND=\"$BACKEND\"" > "$INSTALL_DIR/.env"
