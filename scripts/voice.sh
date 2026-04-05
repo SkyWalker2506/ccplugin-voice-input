@@ -31,6 +31,10 @@ fi
 
 echo ""
 echo "📝 $TEXT"
-echo "$TEXT" | pbcopy
-echo ""
-echo "✅ Clipboard'a kopyalandı — Cmd+V ile yapıştır"
+CLIPBOARD_SCRIPT="$HOME/.claude/plugins/clipboard/scripts/clipboard.sh"
+if [ -f "$CLIPBOARD_SCRIPT" ]; then
+  echo "$TEXT" | bash "$CLIPBOARD_SCRIPT" copy
+else
+  # Fallback: pbcopy (macOS)
+  echo "$TEXT" | pbcopy 2>/dev/null && echo "✅ Clipboard'a kopyalandı"
+fi

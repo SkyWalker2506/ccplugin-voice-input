@@ -1,7 +1,8 @@
 {
   "name": "voice-input",
   "description": "macOS mikrofon + Whisper transkript. Türkçe destekli. Sonuç clipboard'a kopyalanır.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "platform": ["macos"],
+  "dependencies": ["clipboard"],
   "commands": [{"name": "mic", "path": "commands/mic.md"}]
 }
