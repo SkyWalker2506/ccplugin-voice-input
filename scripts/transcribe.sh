@@ -64,9 +64,21 @@ except Exception as e:
     ;;
   apple)
     SWIFT_SCRIPT="$PLUGIN_DIR/apple_speech.swift"
+    AUTH_CHECK="$PLUGIN_DIR/scripts/check_apple_auth.swift"
     if [ ! -f "$SWIFT_SCRIPT" ]; then
       echo "❌ apple_speech.swift bulunamadı: $SWIFT_SCRIPT" >&2
       exit 1
+    fi
+    # Preflight auth check (fast, no dialog on authorized)
+    if [ -f "$AUTH_CHECK" ]; then
+      AUTH_STATUS=$(swift "$AUTH_CHECK" 2>/dev/null)
+      AUTH_EXIT=$?
+      if [ $AUTH_EXIT -eq 1 ]; then
+        echo "❌ Apple Speech Recognition access denied." >&2
+        echo "   Fix: System Settings > Privacy & Security > Speech Recognition > enable for Terminal" >&2
+        exit 1
+      fi
+      # exit 0 (authorized) or 2 (not_determined, will prompt) — proceed either way
     fi
     # Pass VOICE_LANG to Swift via env (already exported) or as argument
     swift "$SWIFT_SCRIPT" "$INPUT" "$LANG_CODE"
