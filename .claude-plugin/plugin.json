@@ -1,8 +1,13 @@
 {
   "name": "voice-input",
-  "description": "macOS mikrofon + Whisper transkript. Türkçe destekli. Sonuç clipboard'a kopyalanır.",
-  "version": "1.0.2",
+  "description": "Voice-to-text for Claude Code — record via microphone, transcribe with Whisper (Apple Speech / whisper.cpp / OpenAI API), copy result to clipboard. Turkish and multilingual support.",
+  "version": "1.1.0",
   "platform": ["macos"],
   "dependencies": ["clipboard"],
-  "commands": [{"name": "mic", "path": "commands/mic.md"}]
+  "commands": [{"name": "mic", "path": "commands/mic.md"}],
+  "env": {
+    "VOICE_BACKEND": "Transcription backend: apple (default) | whisper-cpp | openai",
+    "VOICE_LANG": "Language code: tr-TR (default) | en-US | de-DE | auto (detect)",
+    "VOICE_DURATION": "Max recording duration in seconds (default: 10)"
+  }
 }

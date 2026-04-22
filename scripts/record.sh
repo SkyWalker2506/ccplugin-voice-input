@@ -1,7 +1,8 @@
 #!/bin/bash
 # Kayıt — sox(rec) veya ffmpeg
 OUTPUT="${1:-/tmp/voice_input.wav}"
-DURATION="${2:-10}"
+# Duration: arg > VOICE_DURATION env var > default 10s
+DURATION="${2:-${VOICE_DURATION:-10}}"
 
 if command -v rec &>/dev/null; then
   if [ -t 0 ]; then
