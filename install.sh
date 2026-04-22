@@ -86,13 +86,23 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Aynı dizinse kopyalamaya gerek yok (marketplace zaten cloneladı)
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
   cp "$SCRIPT_DIR/scripts/"*.sh "$INSTALL_DIR/scripts/"
+  # Copy Swift scripts
+  for swf in "$SCRIPT_DIR/scripts/"*.swift; do
+    [ -f "$swf" ] && cp "$swf" "$INSTALL_DIR/scripts/"
+  done
   cp "$SCRIPT_DIR/commands/"*.md "$INSTALL_DIR/commands/"
   cp "$SCRIPT_DIR/.claude-plugin/plugin.json" "$INSTALL_DIR/.claude-plugin/"
   [ -f "$SCRIPT_DIR/apple_speech.swift" ] && cp "$SCRIPT_DIR/apple_speech.swift" "$INSTALL_DIR/"
 fi
 chmod +x "$INSTALL_DIR/scripts/"*.sh
 
-echo "export VOICE_BACKEND=\"$BACKEND\"" > "$INSTALL_DIR/.env"
+LANG_DEFAULT="${VOICE_LANG:-tr-TR}"
+DURATION_DEFAULT="${VOICE_DURATION:-10}"
+cat > "$INSTALL_DIR/.env" <<EOF
+export VOICE_BACKEND="$BACKEND"
+export VOICE_LANG="${LANG_DEFAULT}"
+export VOICE_DURATION="${DURATION_DEFAULT}"
+EOF
 
 echo ""
 echo "✅ Kurulum tamamlandı! Backend: $BACKEND"

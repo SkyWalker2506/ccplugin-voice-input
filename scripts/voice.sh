@@ -45,10 +45,33 @@ fi
 
 echo ""
 echo "📝 $TEXT"
-CLIPBOARD_SCRIPT="$HOME/.claude/plugins/clipboard/scripts/clipboard.sh"
-if [ -f "$CLIPBOARD_SCRIPT" ]; then
-  echo "$TEXT" | bash "$CLIPBOARD_SCRIPT" copy
-else
-  # Fallback: pbcopy (macOS)
-  echo "$TEXT" | pbcopy 2>/dev/null && echo "✅ Clipboard'a kopyalandı"
-fi
+
+# Clipboard abstraction — try multiple methods
+copy_to_clipboard() {
+  local text="$1"
+  local CLIPBOARD_SCRIPT="$HOME/.claude/plugins/clipboard/scripts/clipboard.sh"
+
+  if [ -f "$CLIPBOARD_SCRIPT" ]; then
+    echo "$text" | bash "$CLIPBOARD_SCRIPT" copy && echo "✅ Clipboard'a kopyalandı (ccplugin-clipboard)" && return 0
+  fi
+
+  if command -v pbcopy &>/dev/null; then
+    echo "$text" | pbcopy && echo "✅ Clipboard'a kopyalandı (pbcopy)" && return 0
+  fi
+
+  if command -v xclip &>/dev/null; then
+    echo "$text" | xclip -selection clipboard && echo "✅ Clipboard'a kopyalandı (xclip)" && return 0
+  fi
+
+  if command -v xsel &>/dev/null; then
+    echo "$text" | xsel --clipboard --input && echo "✅ Clipboard'a kopyalandı (xsel)" && return 0
+  fi
+
+  # Last resort: write to temp file
+  local LAST="/tmp/voice-last.txt"
+  echo "$text" > "$LAST"
+  echo "⚠️  Clipboard aracı bulunamadı — metin $LAST dosyasına yazıldı"
+  return 1
+}
+
+copy_to_clipboard "$TEXT"

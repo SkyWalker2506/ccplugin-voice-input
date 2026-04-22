@@ -1,86 +1,100 @@
 # ccplugin-voice-input
 
-Claude Code plugin — macOS mikrofon + Whisper transkript. Türkçe destekli. Sonuç clipboard'a kopyalanır.
+Voice-to-text for Claude Code — record via microphone, transcribe with Whisper, copy to clipboard. Turkish and multilingual.
 
-## Özellikler
+## Features
 
-- macOS mikrofon kaydı (sox, sessizlik tespiti ile otomatik dur)
-- 3 Whisper backend: **whisper.cpp** (local/ücretsiz), **OpenAI API**, **Apple Speech**
-- Türkçe dil desteği (tüm backend'lerde `language=tr`)
-- Sonuç otomatik clipboard'a kopyalanır → Cmd+V ile Claude'a yapıştır
-- `/voice` Claude Code komutu
+- macOS microphone recording (sox or ffmpeg)
+- 3 Whisper backends: **Apple Speech** (local, no setup), **whisper-cpp** (local/free), **OpenAI API** (cloud)
+- Multilingual: Turkish (default), English, German, auto-detect
+- Result copied to clipboard → Cmd+V into Claude Code
+- `/mic [language]` command — `/mic en`, `/mic tr`, `/mic auto`
+- Configurable duration via `VOICE_DURATION` env var
 
-## Kurulum
+## Install (5 steps)
 
 ```bash
-# Önkoşul: Homebrew
-brew install sox
-
-# Repo'yu klonla ve kur
-git clone https://github.com/SkyWalker2506/ccplugin-voice-input.git
+git clone https://github.com/SkyWalker2506/ccplugin-voice-input
 cd ccplugin-voice-input
 bash install.sh
 ```
 
-Kurulum sırasında backend seçmeniz istenir:
-
+Select backend when prompted (default: Apple Speech — no extra setup):
 ```
-Whisper backend seçin:
-  1) whisper.cpp (local, ücretsiz, önerilen)
-  2) OpenAI Whisper API (cloud, API key gerekli)
-  3) Apple Speech Recognition (local, ek kurulum yok)
+1) whisper.cpp (local, free, recommended for best accuracy)
+2) OpenAI Whisper API (cloud, needs OPENAI_API_KEY)
+3) Apple Speech Recognition (local, no setup required)  ← default
 ```
 
-### whisper.cpp model indirme
+## Usage
+
+```
+/mic          # Turkish (default)
+/mic en       # English
+/mic auto     # Auto-detect language (whisper-cpp/openai only)
+/mic de-DE    # German (full BCP-47)
+```
+
+Or directly:
+```bash
+bash ~/.claude/plugins/voice-input/scripts/voice.sh en
+```
+
+## Configuration
+
+Edit `~/.claude/plugins/voice-input/.env`:
 
 ```bash
-# base model (~140MB) — Türkçe için yeterli
-curl -L -o $(brew --prefix)/share/whisper-cpp/models/ggml-base.bin \
+export VOICE_BACKEND="apple"    # apple | whisper-cpp | openai
+export VOICE_LANG="tr-TR"       # default language (tr-TR | en-US | auto | ...)
+export VOICE_DURATION="10"      # max recording seconds
+```
+
+## Language support
+
+| `/mic` arg | Language |
+|-----------|----------|
+| (none) | Turkish (tr-TR) |
+| `tr` | Turkish |
+| `en` | English (en-US) |
+| `de` | German |
+| `auto` | Auto-detect (whisper-cpp / openai only) |
+| `fr-FR` | Full BCP-47 code |
+
+> **Note:** Apple Speech `auto` is not supported — falls back to tr-TR. Use whisper-cpp for auto-detect.
+
+## Apple Speech auth
+
+First run shows a system dialog. If you clicked "Don't Allow":
+- System Settings > Privacy & Security > Speech Recognition > enable Terminal (or your terminal app)
+
+## whisper-cpp model download
+
+```bash
+# base model (~140MB) — sufficient for most languages
+curl -L -o "$(brew --prefix)/share/whisper-cpp/models/ggml-base.bin" \
   https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
-
-# daha doğru (yavaş) — medium model (~460MB)
-curl -L -o $(brew --prefix)/share/whisper-cpp/models/ggml-medium.bin \
-  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin
 ```
 
-## Kullanım
-
-Claude Code'da:
-```
-/voice
-```
-
-Veya direkt:
-```bash
-bash ~/.claude/plugins/voice-input/scripts/voice.sh
-```
-
-1. "Konuşun..." mesajı çıkar
-2. Konuşun (sessizlik algılayınca veya Enter'a basınca durur)
-3. Transkript terminale yazılır ve clipboard'a kopyalanır
-4. Claude Code'da Cmd+V ile yapıştırın
-
-## Backend değiştirme
+## Install check
 
 ```bash
-# Kurulum sonrası backend değiştirmek için:
-echo 'export VOICE_BACKEND="openai"' > ~/.claude/plugins/voice-input/.env
-# seçenekler: whisper-cpp | openai | apple
+swift ~/.claude/plugins/voice-input/scripts/check_apple_auth.swift
+# Expected: "authorized"
 ```
 
-## Gereksinimler
+## Requirements
 
 - macOS 12+
-- Homebrew
-- `sox` (`brew install sox`)
-- Backend'e göre: `whisper-cpp` veya `openai` Python paketi
+- Homebrew (`brew install sox` for interactive recording)
+- Backend: whisper-cpp (`brew install whisper-cpp`) or `pip3 install openai`
 
-## Lisans
+## License
 
 MIT © Musab Kara
 
 ## Part of
 
-- [claude-config](https://github.com/SkyWalker2506/claude-config) — Multi-Agent OS for Claude Code (134 agents, local-first routing)
-- [Plugin Marketplace](https://github.com/SkyWalker2506/claude-marketplace) — Browse & install all 18 plugins
+- [claude-config](https://github.com/SkyWalker2506/claude-config) — Multi-Agent OS for Claude Code
+- [Plugin Marketplace](https://github.com/SkyWalker2506/claude-marketplace) — Browse & install all plugins
 - [ClaudeHQ](https://github.com/SkyWalker2506/ClaudeHQ) — Claude ecosystem HQ
