@@ -104,6 +104,36 @@ export VOICE_LANG="${LANG_DEFAULT}"
 export VOICE_DURATION="${DURATION_DEFAULT}"
 EOF
 
+KEYBINDINGS_FILE="$HOME/.claude/keybindings.json"
+if [ ! -f "$KEYBINDINGS_FILE" ]; then
+  cat > "$KEYBINDINGS_FILE" <<'KBEOF'
+{
+  "$schema": "https://www.schemastore.org/claude-code-keybindings.json",
+  "$docs": "https://code.claude.com/docs/en/keybindings",
+  "bindings": [
+    {
+      "context": "Chat",
+      "bindings": {
+        "ctrl+shift+m": "voice:pushToTalk"
+      }
+    }
+  ]
+}
+KBEOF
+  echo "✓ Keybinding eklendi: Ctrl+Shift+M → mikrofon (push-to-talk)"
+else
+  # Only add if ctrl+shift+m not already bound
+  if ! grep -q "ctrl+shift+m" "$KEYBINDINGS_FILE" 2>/dev/null; then
+    echo "ℹ️  ~/.claude/keybindings.json zaten mevcut — Ctrl+Shift+M'yi manuel ekleyebilirsiniz:"
+    echo '     "ctrl+shift+m": "voice:pushToTalk"  (Chat context)'
+  else
+    echo "✓ Keybinding zaten mevcut: Ctrl+Shift+M"
+  fi
+fi
+
 echo ""
 echo "✅ Kurulum tamamlandı! Backend: $BACKEND"
-echo "Kullanım: /mic (Claude Code'da)"
+echo "Kullanım:"
+echo "  • Ctrl+Shift+M — basılı tut, konuş, bırak (push-to-talk)"
+echo "  • /mic          — Claude Code'da komut olarak"
+echo "  • /mic en       — İngilizce, /mic tr — Türkçe"

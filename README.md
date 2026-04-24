@@ -9,6 +9,7 @@ Voice-to-text for Claude Code — record via microphone, transcribe with Whisper
 - Multilingual: Turkish (default), English, German, auto-detect
 - Result copied to clipboard → Cmd+V into Claude Code
 - `/mic [language]` command — `/mic en`, `/mic tr`, `/mic auto`
+- **`Ctrl+Shift+M`** keyboard shortcut — push-to-talk directly in Claude Code terminal
 - Configurable duration via `VOICE_DURATION` env var
 
 ## Install (5 steps)
